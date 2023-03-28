@@ -1,0 +1,54 @@
+name: Release Go modules
+on:
+  create:
+    # Trigger the workflow when a new tag is created
+    tags:
+      # Limit the triggering to tags that match the given pattern
+      - '@siafoundation/(renterd|hostd|walletd)@*.*.*'
+
+env:
+  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  release-go:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout all commits
+        uses: actions/checkout@v3
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Setup
+        uses: ./.github/actions/setup
+        with:
+          node_version: 16
+      - name: Next export
+        shell: bash
+        run: |
+          NAME=$(echo "${{ github.ref }}" | sed -E 's/^refs\/tags\/@siafoundation\/(.*)@.*$/\1/')
+          VERSION=$(echo "${{ github.ref }}" | sed -E 's/^refs\/tags\/@siafoundation\/.*@(.*)$/\1/')
+          echo "name: $NAME version: $VERSION"
+          npx nx export $NAME
+      # git config --local user.email "action@github.com"
+      # git config --local user.name "GitHub Action"
+      - name: Copy files
+        run: |
+          NAME=$(echo "${{ github.ref }}" | sed -E 's/^refs\/tags\/@siafoundation\/(.*)@.*$/\1/')
+          mkdir -p ${NAME}/assets
+          rm -rf ${NAME}/assets/*
+          cp -R dist/apps/${NAME}/exported/* ${NAME}/assets/
+      - name: Commit changes
+        run: |
+          git add .
+          git commit -m "chore: release Go modules"
+      - name: Create tag
+        run: |
+          NAME=$(echo "${{ github.ref }}" | sed -E 's/^refs\/tags\/@siafoundation\/(.*)@.*$/\1/')
+          VERSION=$(echo "${{ github.ref }}" | sed -E 's/^refs\/tags\/@siafoundation\/.*@(.*)$/\1/')
+          git tag "${NAME}/${VERSION}"
+      - name: Push changes
+        run: |
+          git pull --rebase origin main
+          git push origin main --tags
