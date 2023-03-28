@@ -18,24 +18,29 @@ jobs:
       - name: Checkout all commits
         uses: actions/checkout@v3
         with:
-          ref: main
           fetch-depth: 0
       - name: Setup
         uses: ./.github/actions/setup
         with:
           node_version: 16
-      - name: Next export
+      - name: Set variables
         shell: bash
         run: |
           NAME=$(echo "${{ github.ref }}" | sed -E 's/^refs\/tags\/@siafoundation\/(.*)@.*$/\1/')
           VERSION=$(echo "${{ github.ref }}" | sed -E 's/^refs\/tags\/@siafoundation\/.*@(.*)$/\1/')
-          echo "name: $NAME version: $VERSION"
+          TAG="${NAME}/${VERSION}"
+          echo "NAME=${NAME}" >> $GITHUB_ENV
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "TAG=${TAG}" >> $GITHUB_ENV
+      - name: Next export
+        shell: bash
+        run: |
           npx nx export $NAME
-      # git config --local user.email "action@github.com"
-      # git config --local user.name "GitHub Action"
+      # - name: Checkout a branch
+      #   run: |
+      #     git checkout -b release-go ${{ github.ref }}
       - name: Copy files
         run: |
-          NAME=$(echo "${{ github.ref }}" | sed -E 's/^refs\/tags\/@siafoundation\/(.*)@.*$/\1/')
           mkdir -p ${NAME}/assets
           rm -rf ${NAME}/assets/*
           cp -R dist/apps/${NAME}/exported/* ${NAME}/assets/
@@ -45,13 +50,14 @@ jobs:
           git commit -m "chore: release Go modules"
       - name: Create tag
         run: |
-          NAME=$(echo "${{ github.ref }}" | sed -E 's/^refs\/tags\/@siafoundation\/(.*)@.*$/\1/')
-          VERSION=$(echo "${{ github.ref }}" | sed -E 's/^refs\/tags\/@siafoundation\/.*@(.*)$/\1/')
-          git tag "${NAME}/${VERSION}"
+          git tag -a ${TAG} -m "Go module ${TAG}"
       - name: Push changes
         run: |
-          NAME=$(echo "${{ github.ref }}" | sed -E 's/^refs\/tags\/@siafoundation\/(.*)@.*$/\1/')
-          VERSION=$(echo "${{ github.ref }}" | sed -E 's/^refs\/tags\/@siafoundation\/.*@(.*)$/\1/')
-          git checkout -b release-go ${NAME}/${VERSION}
-          git pull --rebase origin main
-          git push origin main --tags
+          git checkout -b release ${TAG}
+          git fetch origin main
+          git rebase origin/main
+          git checkout main
+          git merge --ff-only release
+          git push origin main
+          git push origin ${TAG}
+          git branch -D release
