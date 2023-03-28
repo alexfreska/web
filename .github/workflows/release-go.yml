@@ -1,0 +1,49 @@
+name: Release Go modules
+# on:
+#   create:
+#     # Trigger the workflow when a new tag is created
+#     tags:
+#       # Limit the triggering to tags that match the given pattern
+#       - '@siafoundation/(renterd|hostd|walletd)@*.*.*'
+on:
+  pull_request:
+
+jobs:
+  my-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout all commits
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Setup
+        uses: ./.github/actions/setup
+        with:
+          node_version: 16
+      - name: Next export
+        shell: bash
+        run: |
+          NAME=$(echo "${{ github.ref }}" | sed -E 's/^@siafoundation\/(.*)@.*$/\1/')
+          echo "Renterd name: $NAME"
+          npx nx export $NAME
+      # - name: Commit changes
+      #   run: |
+      #     git config --local user.email "action@github.com"
+      #     git config --local user.name "GitHub Action"
+      #     git add .
+      #     git commit -m "chore: release Go modules"
+
+      # - name: Create tag
+      #   run: |
+      #     TAG_NAME="renterd/$(echo ${GITHUB_REF#*@} | cut -d '/' -f 2)"
+      #     git tag "$TAG_NAME"
+
+      # - name: Push changes
+      #   uses: ad-m/github-push-action@master
+      #   with:
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     branch: ${{ github.ref }}
+      #     tags: true
+      #     force: false
+      #     allow_empty_commit: false
+      #     merge_method: rebase
