@@ -1,15 +1,15 @@
 name: Release or Publish
-on:
-  push:
-    branches:
-      - main
+# on:
+#   push:
+#     branches:
+#       - main
 
 # This is for .npmrc. Nx automatically creates an .npmrc before changesets runs
 # and creates one itself, so we need to explicitly have one.
 env:
   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-concurrency: ${{ github.workflow }}-${{ github.ref }}
+concurrency: commit-group
 
 jobs:
   main:
