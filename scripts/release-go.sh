@@ -36,17 +36,4 @@ then
   do
     git tag -a $tag -m "Go module $tag"
   done
-  # check out the commit as a new branch
-  git checkout -b release
-  # sync up the main branch in case something has been merged
-  # since the action started
-  git fetch origin main
-  # checkout the main branch and merge in the release branch
-  # this will be a fast forward merge unless something went wrong
-  git checkout main
-  git merge release
-  # push the main branch
-  git push origin main --tags
-  # cleanup
-  git branch -D release
 fi
