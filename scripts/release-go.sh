@@ -11,8 +11,8 @@ do
     echo "Latest release: $latest_release"
     version=$(echo $latest_release | cut -d "@" -f 2)
     go_release="$app/v$version"
-    tag_exists=$(git describe --exact-match "$go_release" 2>/dev/null)
-    if [ -z "$tag_exists" ]
+    tag=$(git describe --exact-match "$go_release" 2>/dev/null)
+    if [ -z "$tag" ]
     then
       echo "Tag $go_release does not exists, exporting app"
       npx nx export $app
