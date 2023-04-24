@@ -25,10 +25,11 @@ do
     fi
   fi
 done
+echo ""
 
 if [ ${#go_releases[@]} -gt 0 ]
 then
-  echo "Released: ${go_releases[*]}"
+  echo "Releasing: ${go_releases[*]}"
   git add .
   git commit -m "chore: export ${go_releases[*]}"
   for tag in "${go_releases[@]}"
@@ -45,8 +46,7 @@ then
   git checkout main
   git merge release
   # push the main branch
-  git push origin main
-  git push origin ${TAG}
+  git push origin main --tags
   # cleanup
   git branch -D release
 fi
