@@ -14,14 +14,14 @@ do
     tag_exists=$(git describe --exact-match "$go_release" 2>/dev/null)
     if [ -z "$tag_exists" ]
     then
-      echo "Tag $go_release exists"
-    else
       echo "Tag $go_release does not exists, exporting app"
       npx nx export $app
       mkdir -p $app/ui/assets
       rm -rf $app/ui/assets/*
       cp -R dist/apps/$app-embed/exported/* $app/ui/assets/
       go_releases+=("$go_release")
+    else
+      echo "Tag $go_release exists"
     fi
   fi
 done
