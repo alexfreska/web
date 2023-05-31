@@ -4,8 +4,8 @@ concurrency: commits-to-main
 
 on:
   # daily at midnight
-  schedule:
-    - cron: 0 0 * * *
+  # schedule:
+  #   - cron: 0 0 * * *
   # enable manual trigger
   workflow_dispatch:
 
